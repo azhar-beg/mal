@@ -7,6 +7,10 @@ const {
   MalHashMap,
   MalString,
   MalKey,
+  MalQuote,
+  MalUnquote,
+  MalQuasiquote,
+  MalSpliceUnquote,
 } = require("./types");
 
 class Reader {
@@ -62,6 +66,24 @@ const read_hashMap = (reader) => {
   return new MalHashMap(read_seq(reader, "}"));
 };
 
+const readQuote = (reader) => {
+  reader.next();
+  return new MalQuote(read_form(reader));
+};
+
+const readQuasiQuote = (reader) => {
+  reader.next();
+  return new MalQuasiquote(read_form(reader));
+};
+
+const readUnquote = (reader) => {
+  const current = reader.peek();
+  reader.next();
+  return current.includes("@")
+    ? new MalSpliceUnquote(read_form(reader))
+    : new MalUnquote(read_form(reader));
+};
+
 const read_atom = (reader) => {
   const token = reader.next();
 
@@ -93,23 +115,6 @@ const read_atom = (reader) => {
   return new MalSymbol(token);
 };
 
-const quoteFormat = (reader) => {
-  const tokens = reader.tokens;
-
-  return new Reader(["(", "quote", ...tokens.slice(1), ")"]);
-};
-
-const quasiQuoteFormat = (reader) => {
-  const tokens = reader.tokens;
-  return new Reader(["(", "quasiquote", ...tokens.slice(1), ")"]);
-};
-
-const unquoteFormat = (reader) => {
-  const tokens = reader.tokens;
-  const quote = tokens[0].includes("@") ? "splice-unquote" : "unquote";
-  return new Reader(["(", quote, ...tokens.slice(1), ")"]);
-};
-
 const read_form = (reader) => {
   const token = reader.peek();
   switch (token[0]) {
@@ -119,12 +124,12 @@ const read_form = (reader) => {
       return read_vector(reader);
     case "{":
       return read_hashMap(reader);
-    // case "'":
-    //   return read_form(quoteFormat(reader));
-    // case "~":
-    //   return read_form(unquoteFormat(reader));
-    // case "`":
-    //   return read_form(quasiQuoteFormat(reader));
+    case "'":
+      return readQuote(reader);
+    case "~":
+      return readUnquote(reader);
+    case "`":
+      return readQuasiQuote(reader);
     default:
       return read_atom(reader);
   }

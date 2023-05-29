@@ -54,6 +54,44 @@ class MalVector extends MalValue {
   }
 }
 
+class MalQuasiquote extends MalValue {
+  constructor(value) {
+    super(value);
+  }
+
+  pr_str() {
+    return "(quasiquote " + pr_str(this.value) + ")";
+  }
+}
+class MalQuote extends MalValue {
+  constructor(value) {
+    super(value);
+  }
+
+  pr_str() {
+    return "(quote " + pr_str(this.value) + ")";
+  }
+}
+class MalUnquote extends MalValue {
+  constructor(value) {
+    super(value);
+  }
+
+  pr_str() {
+    return "(unquote " + pr_str(this.value) + ")";
+  }
+}
+
+class MalSpliceUnquote extends MalValue {
+  constructor(value) {
+    super(value);
+  }
+
+  pr_str() {
+    return "(splice-unquote " + pr_str(this.value) + ")";
+  }
+}
+
 class MalHashMap extends MalValue {
   constructor(value) {
     super(value);
@@ -83,4 +121,8 @@ module.exports = {
   MalHashMap,
   MalString,
   MalKey,
+  MalQuote,
+  MalUnquote,
+  MalQuasiquote,
+  MalSpliceUnquote,
 };

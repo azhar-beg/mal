@@ -1,6 +1,8 @@
 class Env {
   #outer;
-  constructor(outer) {
+  constructor(outer, binds, exprs) {
+    this.binds = binds;
+    this.exprs = exprs;
     this.#outer = outer;
     this.data = {};
   }

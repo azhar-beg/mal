@@ -1,3 +1,10 @@
+const isEqual = (a, b) => {
+  if (a instanceof MalValue && b instanceof MalValue) {
+    return a.equals(b);
+  }
+  return a === b;
+};
+
 const pr_str = (malValue) => {
   return malValue instanceof MalValue ? malValue.pr_str() : malValue;
 };
@@ -9,6 +16,10 @@ class MalValue {
 
   pr_str() {
     return this.value.toString();
+  }
+
+  equals(b) {
+    return this.value === b.value;
   }
 }
 
@@ -35,8 +46,19 @@ class MalList extends MalValue {
     super(value);
   }
 
+  length() {
+    return this.value.length;
+  }
+
   pr_str() {
     return "(" + this.value.map((x) => pr_str(x)).join(" ") + ")";
+  }
+
+  equals(b) {
+    if (b instanceof MalList || b instanceof MalVector) {
+      return this.value.map((x, i) => isEqual(x, b[i]));
+    }
+    return false;
   }
 
   isEmpty() {
@@ -47,6 +69,17 @@ class MalList extends MalValue {
 class MalVector extends MalValue {
   constructor(value) {
     super(value);
+  }
+
+  length() {
+    return this.value.length;
+  }
+
+  equals(b) {
+    if (b instanceof MalList || b instanceof MalVector) {
+      return this.value.map((x, i) => isEqual(x, b[i]));
+    }
+    return false;
   }
 
   pr_str() {
@@ -105,6 +138,10 @@ class MalHashMap extends MalValue {
 class MalNil extends MalValue {
   constructor() {
     super(null);
+  }
+
+  length() {
+    return 0;
   }
 
   pr_str() {

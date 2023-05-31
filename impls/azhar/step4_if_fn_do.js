@@ -1,71 +1,16 @@
 const readline = require("readline");
 const { read_str } = require("./reader.js");
 const { pr_str } = require("./printer.js");
+const { ns } = require("./core.js");
 
-const {
-  MalSymbol,
-  MalList,
-  MalValue,
-  MalVector,
-  MalHashMap,
-} = require("./types.js");
+const { MalSymbol, MalList, MalVector, MalHashMap } = require("./types.js");
 const { Env } = require("./env.js");
-
-const isEqual = (a, b) => {
-  if (Array.isArray(a) && Array.isArray(b) && a.length === b.length) {
-    return a.every((x, i) => {
-      console.log(x, b[i]);
-      if (x instanceof MalValue && b[i] instanceof MalValue) {
-        return x.equals(b[i]);
-      }
-      return x === b[i];
-    });
-  }
-
-  return a === b;
-};
 
 const READ = (str) => read_str(str);
 
 const env = new Env();
-env.set(new MalSymbol("+"), (...args) =>
-  args.reduce((a, b) => new MalValue(a.value + b.value))
-);
-env.set(new MalSymbol("*"), (...args) =>
-  args.reduce((a, b) => new MalValue(a.value * b.value))
-);
-env.set(new MalSymbol("/"), (...args) =>
-  args.reduce((a, b) => new MalValue(a.value / b.value))
-);
-env.set(new MalSymbol("-"), (...args) =>
-  args.reduce((a, b) => new MalValue(a.value - b.value))
-);
-
-env.set(new MalSymbol("prn"), (...args) => {
-  const out = args.map((el) => el.value);
-  console.log(out.join(" "));
-});
-env.set(new MalSymbol("="), (...args) =>
-  args.slice(0, -1).every((el, i) => isEqual(el.value, args[i + 1].value))
-);
-env.set(new MalSymbol("list"), (...args) => new MalList(args));
-env.set(new MalSymbol(">"), (...args) =>
-  args.slice(0, -1).every((el, i) => el.value > args[i + 1].value)
-);
-env.set(new MalSymbol(">="), (...args) => {
-  return args.slice(0, -1).every((el, i) => el.value >= args[i + 1].value);
-});
-env.set(new MalSymbol("<"), (...args) =>
-  args.slice(0, -1).every((el, i) => el.value < args[i + 1].value)
-);
-env.set(new MalSymbol("<="), (...args) =>
-  args.slice(0, -1).every((el, i) => el.value <= args[i + 1].value)
-);
-
-env.set(new MalSymbol("list?"), (args) => args instanceof MalList);
-
-env.set(new MalSymbol("count"), (args) => {
-  return new MalSymbol(args.length());
+Object.keys(ns).forEach((key) => {
+  env.set(new MalSymbol(key), ns[key]);
 });
 
 const eval_ast = (ast, env) => {
@@ -138,6 +83,11 @@ const EVAL = (ast, env) => {
       return evalDo(ast.value.slice(1), env);
     case "if":
       return evalIf(ast.value.slice(1), env);
+    case "fn*":
+      return (...exprs) => {
+        const fnEnv = new Env(env, ast.value[1], exprs);
+        return EVAL(ast.value[2], fnEnv);
+      };
   }
 
   const [fn, ...args] = eval_ast(ast, env).value;
@@ -147,6 +97,8 @@ const EVAL = (ast, env) => {
 const PRINT = (str) => pr_str(str);
 
 const rep = (str) => PRINT(EVAL(READ(str), env));
+
+env.set(new MalSymbol("not"), rep("(def! not (fn* (a) (if a false true)))"));
 
 const rl = readline.createInterface({
   input: process.stdin,

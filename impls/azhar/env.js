@@ -1,10 +1,15 @@
 class Env {
   #outer;
   constructor(outer, binds, exprs) {
-    this.binds = binds;
-    this.exprs = exprs;
     this.#outer = outer;
     this.data = {};
+    this.bindExprs(binds, exprs);
+  }
+
+  bindExprs(binds, exprs) {
+    binds?.value.forEach((bind, i) => {
+      this.set(bind, exprs[i]);
+    });
   }
 
   set(symbol, malValue) {
@@ -12,7 +17,7 @@ class Env {
   }
 
   find(symbol) {
-    if (this.data[symbol.value]) {
+    if (this.data[symbol.value] || this.data[symbol.value] === false) {
       return this;
     }
 

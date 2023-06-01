@@ -3,7 +3,13 @@ const { read_str } = require("./reader.js");
 const { pr_str } = require("./printer.js");
 const { ns } = require("./core.js");
 
-const { MalSymbol, MalList, MalVector, MalHashMap } = require("./types.js");
+const {
+  MalSymbol,
+  MalList,
+  MalVector,
+  MalHashMap,
+  MalNil,
+} = require("./types.js");
 const { Env } = require("./env.js");
 
 const READ = (str) => read_str(str);
@@ -56,11 +62,11 @@ const evalIf = (list, env) => {
   const [condition, firsExpr, secondExpr] = list;
   const evaluatedCond = EVAL(condition, env);
 
-  const result = ["nil", false].includes(evaluatedCond)
-    ? EVAL(secondExpr)
-    : EVAL(firsExpr);
+  const result = ["nil", false].includes(pr_str(evaluatedCond))
+    ? EVAL(secondExpr, env)
+    : EVAL(firsExpr, env);
 
-  return result;
+  return result ?? new MalNil();
 };
 
 const EVAL = (ast, env) => {
@@ -91,7 +97,7 @@ const EVAL = (ast, env) => {
   }
 
   const [fn, ...args] = eval_ast(ast, env).value;
-  return fn.apply(null, args) ?? "nil";
+  return fn.apply(null, args) ?? new MalNil();
 };
 
 const PRINT = (str) => pr_str(str);

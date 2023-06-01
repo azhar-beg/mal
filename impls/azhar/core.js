@@ -43,7 +43,9 @@ const ns = {
     console.log(out.join(" "));
     return new MalNil();
   },
-  "pr-str": (...args) => args.map(pr_str).join(""),
+  "pr-str": (...args) => args.map((str) => pr_str(str, true)).join(""),
+  str: (...args) => args.map((str) => pr_str(str, false)).join(""),
+  // "pr-str": (args) => pr_str(args),
 };
 
 module.exports = { ns };

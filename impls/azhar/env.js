@@ -1,3 +1,5 @@
+const { MalList } = require("./types");
+
 class Env {
   #outer;
   constructor(outer, binds, exprs) {
@@ -7,9 +9,19 @@ class Env {
   }
 
   bindExprs(binds, exprs) {
-    binds?.value.forEach((bind, i) => {
-      this.set(bind, exprs[i]);
-    });
+    if (!binds) {
+      return;
+    }
+
+    const bindList = binds.value;
+    for (let index = 0; index < bindList.length; index++) {
+      if (bindList[index].value === "&") {
+        console.log(exprs.slice(index));
+        this.set(bindList[index + 1], new MalList(exprs.slice(index)));
+        return;
+      }
+      this.set(bindList[index], exprs[index]);
+    }
   }
 
   set(symbol, malValue) {
@@ -17,7 +29,7 @@ class Env {
   }
 
   find(symbol) {
-    if (this.data[symbol.value] || this.data[symbol.value] === false) {
+    if (this.data[symbol.value] !== undefined) {
       return this;
     }
 

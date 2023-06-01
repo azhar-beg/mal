@@ -1,4 +1,5 @@
 const isEqual = (a, b) => {
+  console.log(a, b, "======");
   if (a instanceof MalValue && b instanceof MalValue) {
     return a.equals(b);
   }
@@ -33,6 +34,10 @@ class MalString extends MalValue {
   constructor(value) {
     super(value);
   }
+
+  pr_str() {
+    return this.value.slice(1).slice(0, -1);
+  }
 }
 
 class MalKey extends MalValue {
@@ -56,7 +61,7 @@ class MalList extends MalValue {
 
   equals(b) {
     if (b instanceof MalList || b instanceof MalVector) {
-      return this.value.map((x, i) => isEqual(x, b[i]));
+      return this.value.every((x, i) => isEqual(x, b.value[i]));
     }
     return false;
   }
@@ -76,8 +81,9 @@ class MalVector extends MalValue {
   }
 
   equals(b) {
+    console.log(b, "-----");
     if (b instanceof MalList || b instanceof MalVector) {
-      return this.value.map((x, i) => isEqual(x, b[i]));
+      return this.value.every((x, i) => isEqual(x, b.value[i]));
     }
     return false;
   }

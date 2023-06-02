@@ -36,7 +36,7 @@ class MalString extends MalValue {
   }
 
   pr_str() {
-    return this.value.slice(1).slice(0, -1);
+    return `"` + this.value + `"`;
   }
 }
 

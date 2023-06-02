@@ -1,5 +1,5 @@
 const { pr_str } = require("./printer");
-const { MalSymbol, MalValue, MalList, MalNil } = require("./types");
+const { MalSymbol, MalValue, MalList, MalNil, MalString } = require("./types");
 
 const isEqual = (item1, item2) => {
   if (
@@ -43,9 +43,15 @@ const ns = {
     console.log(out.join(" "));
     return new MalNil();
   },
-  "pr-str": (...args) => args.map((str) => pr_str(str, true)).join(""),
-  str: (...args) => args.map((str) => pr_str(str, false)).join(""),
-  // "pr-str": (args) => pr_str(args),
+  println: (...args) => {
+    const out = args.map((el) => pr_str(el, false).slice(1, -1));
+    console.log(out.join(" "));
+    return new MalNil();
+  },
+  "pr-str": (...args) =>
+    new MalString(args.map((str) => pr_str(str, true)).join(" ")),
+  str: (...args) =>
+    new MalString(args.map((str) => pr_str(str, false).slice(1, -1)).join("")),
 };
 
 module.exports = { ns };

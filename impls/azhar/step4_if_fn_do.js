@@ -50,7 +50,7 @@ const createNewEnv = (env, bindingList) => {
   return newEnv;
 };
 
-const evalDo = (list, env) => {
+const handleDo = (list, env) => {
   let result;
   for (let i = 0; i < list.length; i++) {
     result = EVAL(list[i], env);
@@ -58,7 +58,7 @@ const evalDo = (list, env) => {
   return result;
 };
 
-const evalIf = (list, env) => {
+const handleIf = (list, env) => {
   const [condition, firsExpr, secondExpr] = list;
   const evaluatedCond = EVAL(condition, env);
 
@@ -86,9 +86,9 @@ const EVAL = (ast, env) => {
       const bindingList = ast.value[1].value;
       return EVAL(ast.value[2], createNewEnv(env, bindingList));
     case "do":
-      return evalDo(ast.value.slice(1), env);
+      return handleDo(ast.value.slice(1), env);
     case "if":
-      return evalIf(ast.value.slice(1), env);
+      return handleIf(ast.value.slice(1), env);
     case "fn*":
       return (...exprs) => {
         const fnEnv = new Env(env, ast.value[1], exprs);
@@ -100,7 +100,7 @@ const EVAL = (ast, env) => {
   return fn.apply(null, args) ?? new MalNil();
 };
 
-const PRINT = (str) => pr_str(str);
+const PRINT = (str) => pr_str(str, false);
 
 const rep = (str) => PRINT(EVAL(READ(str), env));
 

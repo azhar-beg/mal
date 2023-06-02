@@ -103,7 +103,7 @@ const read_atom = (reader) => {
 
   if (token.startsWith('"')) {
     if (token.endsWith('"') && token.length > 1) {
-      return new MalString(token);
+      return new MalString(token.slice(1, -1));
     }
     throw new Error("unbalanced");
   }

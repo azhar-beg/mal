@@ -16,7 +16,6 @@ class Env {
     const bindList = binds.value;
     for (let index = 0; index < bindList.length; index++) {
       if (bindList[index].value === "&") {
-        console.log(exprs.slice(index));
         this.set(bindList[index + 1], new MalList(exprs.slice(index)));
         return;
       }

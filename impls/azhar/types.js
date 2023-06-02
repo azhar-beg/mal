@@ -141,6 +141,18 @@ class MalHashMap extends MalValue {
   }
 }
 
+class MalFunction extends MalValue {
+  constructor(ast, binds, env) {
+    super(ast);
+    this.binds = binds;
+    this.env = env;
+  }
+
+  pr_str(printReadably) {
+    return "#<function>";
+  }
+}
+
 class MalNil extends MalValue {
   constructor() {
     super(null);
@@ -168,4 +180,5 @@ module.exports = {
   MalUnquote,
   MalQuasiquote,
   MalSpliceUnquote,
+  MalFunction,
 };

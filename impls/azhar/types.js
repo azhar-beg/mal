@@ -1,14 +1,27 @@
+const pr_str = (malValue, print_readably = false) => {
+  return malValue instanceof MalValue
+    ? malValue.pr_str(print_readably)
+    : malValue;
+};
+
+const createMalString = (str) => {
+  const value = str.replace(/\\(.)/, (y, captured) =>
+    captured === "n" ? "\n" : captured
+  );
+
+  return new MalString(value);
+};
+
 const isEqual = (a, b) => {
-  console.log(a, b, "======");
   if (a instanceof MalValue && b instanceof MalValue) {
     return a.equals(b);
   }
   return a === b;
 };
 
-const pr_str = (malValue) => {
-  return malValue instanceof MalValue ? malValue.pr_str() : malValue;
-};
+// const pr_str = (malValue, print_readably) => {
+//   return malValue instanceof MalValue ? malValue.pr_str() : malValue;
+// };
 
 class MalValue {
   constructor(value) {
@@ -35,8 +48,19 @@ class MalString extends MalValue {
     super(value);
   }
 
-  pr_str() {
-    return `"` + this.value + `"`;
+  pr_str(readability = false) {
+    if (readability) {
+      return (
+        '"' +
+        this.value
+          .replace(/\\/g, "\\\\")
+          .replace(/"/g, '\\"')
+          .replace(/\n/g, "\\n") +
+        '"'
+      );
+    }
+
+    return this.value.toString();
   }
 }
 
@@ -142,14 +166,19 @@ class MalHashMap extends MalValue {
 }
 
 class MalFunction extends MalValue {
-  constructor(ast, binds, env) {
+  constructor(ast, binds, env, fn) {
     super(ast);
     this.binds = binds;
     this.env = env;
+    this.fn = fn;
   }
 
   pr_str(printReadably) {
     return "#<function>";
+  }
+
+  apply(ctx, args) {
+    return this.fn.apply(ctx, args);
   }
 }
 
@@ -167,6 +196,30 @@ class MalNil extends MalValue {
   }
 }
 
+class MalAtom extends MalValue {
+  constructor(value) {
+    super(value);
+  }
+
+  pr_str(print_readably = false) {
+    return "(atom " + pr_str(this.value, print_readably) + ")";
+  }
+
+  deref() {
+    return this.value;
+  }
+
+  reset(value) {
+    this.value = value;
+    return this.value;
+  }
+
+  swap(f, args) {
+    this.value = f.apply(null, [this.value, ...args]);
+    return this.value;
+  }
+}
+
 module.exports = {
   MalSymbol,
   MalValue,
@@ -181,4 +234,7 @@ module.exports = {
   MalQuasiquote,
   MalSpliceUnquote,
   MalFunction,
+  MalAtom,
+  createMalString,
+  pr_str,
 };

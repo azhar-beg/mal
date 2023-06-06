@@ -5,12 +5,12 @@ const {
   MalVector,
   MalNil,
   MalHashMap,
-  MalString,
   MalKey,
   MalQuote,
   MalUnquote,
   MalQuasiquote,
   MalSpliceUnquote,
+  createMalString,
 } = require("./types");
 
 class Reader {
@@ -34,7 +34,10 @@ const tokenize = (str) => {
   const re =
     /[\s,]*(~@|[\[\]{}()'`~^@]|"(?:\\.|[^\\"])*"?|;.*|[^\s\[\]{}('"`,;)]*)/g;
 
-  return [...str.matchAll(re)].map((x) => x[1]).slice(0, -1);
+  return [...str.matchAll(re)]
+    .map((x) => x[1])
+    .slice(0, -1)
+    .filter((str) => !str.startsWith(";"));
 };
 
 const read_seq = (reader, closingSymbol) => {
@@ -103,7 +106,7 @@ const read_atom = (reader) => {
 
   if (token.startsWith('"')) {
     if (token.endsWith('"') && token.length > 1) {
-      return new MalString(token.slice(1, -1));
+      return createMalString(token.slice(1, -1));
     }
     throw new Error("unbalanced");
   }
@@ -113,6 +116,13 @@ const read_atom = (reader) => {
   }
 
   return new MalSymbol(token);
+};
+
+const prependSymbol = (reader, symbolStr) => {
+  reader.next();
+  const symbol = new MalSymbol(symbolStr);
+  const newAst = read_form(reader);
+  return new MalList([symbol, newAst]);
 };
 
 const read_form = (reader) => {
@@ -130,6 +140,8 @@ const read_form = (reader) => {
       return readUnquote(reader);
     case "`":
       return readQuasiQuote(reader);
+    case "@":
+      return prependSymbol(reader, "deref");
     default:
       return read_atom(reader);
   }

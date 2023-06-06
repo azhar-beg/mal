@@ -1,5 +1,14 @@
 const { pr_str } = require("./printer");
-const { MalSymbol, MalValue, MalList, MalNil, MalString } = require("./types");
+const { read_str } = require("./reader");
+const {
+  MalSymbol,
+  MalValue,
+  MalList,
+  MalNil,
+  MalString,
+  MalAtom,
+} = require("./types");
+const fs = require("fs");
 
 const isEqual = (item1, item2) => {
   if (
@@ -44,14 +53,22 @@ const ns = {
     return new MalNil();
   },
   println: (...args) => {
-    const out = args.map((el) => pr_str(el, false).slice(1, -1));
+    const out = args.map((el) => pr_str(el, false));
     console.log(out.join(" "));
     return new MalNil();
   },
   "pr-str": (...args) =>
-    new MalString(args.map((str) => pr_str(str, true)).join(" ")),
+    new MalString(args.map((str) => pr_str(str, false)).join(" ")),
   str: (...args) =>
-    new MalString(args.map((str) => pr_str(str, false).slice(1, -1)).join("")),
+    new MalString(args.map((str) => pr_str(str, false)).join("")),
+
+  "read-string": (str) => read_str(pr_str(str, false)),
+  slurp: (filename) => new MalString(fs.readFileSync(filename.value, "utf8")),
+  atom: (value) => new MalAtom(value),
+  "atom?": (value) => value instanceof MalAtom,
+  "reset!": (atom, value) => atom.reset(value),
+  deref: (atom) => atom.deref(),
+  "swap!": (atom, f, ...args) => atom.swap(f, args),
 };
 
 module.exports = { ns };

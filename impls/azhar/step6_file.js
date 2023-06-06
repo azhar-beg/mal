@@ -9,7 +9,6 @@ const {
   MalList,
   MalVector,
   MalHashMap,
-  MalNil,
 } = require("./types.js");
 const { Env } = require("./env.js");
 
@@ -59,7 +58,7 @@ const handleDef = (ast, env) => {
 const handleLet = (ast, env) => {
   const [bindings, ...forms] = ast.value.slice(1);
   const newEnv = createNewEnv(env, bindings);
-  const doForms = new MalList([new Symbol("do"), ...forms]);
+  const doForms = new MalList([new MalSymbol("do"), ...forms]);
 
   return [doForms, newEnv];
 };
@@ -86,7 +85,12 @@ const handleIf = (ast, env) => {
 const handleFn = (ast, env) => {
   const [binds, ...body] = ast.value.slice(1);
   const doForms = new MalList([new MalSymbol("do"), ...body]);
-  return new MalFunction(doForms, binds, env);
+
+  const fn = (...exprs) => {
+    const fnEnv = new Env(env, ast.value[1], exprs);
+    return EVAL(ast.value[2], fnEnv);
+  };
+  return new MalFunction(doForms, binds, env, fn);
 };
 
 const EVAL = (ast, env) => {
@@ -128,11 +132,15 @@ const EVAL = (ast, env) => {
   }
 };
 
-const PRINT = (str) => pr_str(str, false);
+const PRINT = (str) => pr_str(str, true);
 
 const rep = (str) => PRINT(EVAL(READ(str), env));
 
+env.set(new MalSymbol("eval"), (ast) => EVAL(ast, env));
 rep("(def! not (fn* (a) (if a false true)))");
+rep(
+  '(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))'
+);
 
 const rl = readline.createInterface({
   input: process.stdin,
